@@ -41,12 +41,33 @@ def login_user(request):
 # Create a `logout_request` view to handle sign out request
 # def logout_request(request):
 # ...
-
+def logout_request(request):
+    from django.contrib.auth import logout
+    logout(request)
+    return JsonResponse({"status": "Logged out"})
 # Create a `registration` view to handle sign up request
 # @csrf_exempt
 # def registration(request):
 # ...
+@csrf_exempt
+def registration(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        username = data.get("userName")
+        password = data.get("password")
 
+        if not username or not password:
+            return JsonResponse({"error": "Username and password are required"}, status=400)
+
+        from django.contrib.auth.models import User
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({"error": "Username already exists"}, status=400)
+
+        User.objects.create_user(username=username, password=password)
+        return JsonResponse({"userName": username, "status": "Account created"})
+
+    return JsonResponse({"error": "POST method required"}, status=405)
 # # Update the `get_dealerships` view to render the index page with
 # a list of dealerships
 # def get_dealerships(request):
